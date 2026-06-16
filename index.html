@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Twitter</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f5f8fa;
+    margin:0;
+}
+
+header{
+    background:#1DA1F2;
+    color:white;
+    padding:15px;
+    text-align:center;
+    font-size:24px;
+    font-weight:bold;
+}
+
+.container{
+    max-width:700px;
+    margin:auto;
+    padding:20px;
+}
+
+.post-box{
+    background:white;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:20px;
+}
+
+textarea{
+    width:100%;
+    height:80px;
+    resize:none;
+    padding:10px;
+}
+
+button{
+    background:#1DA1F2;
+    color:white;
+    border:none;
+    padding:10px 15px;
+    border-radius:20px;
+    cursor:pointer;
+}
+
+.post{
+    background:white;
+    padding:15px;
+    margin-bottom:15px;
+    border-radius:10px;
+}
+
+.actions{
+    margin-top:10px;
+    display:flex;
+    gap:10px;
+}
+
+.like-btn{
+    background:#e0245e;
+}
+
+.msg-btn{
+    background:#17bf63;
+}
+
+.comment{
+    margin-top:10px;
+    padding:8px;
+    background:#f0f0f0;
+    border-radius:8px;
+}
+</style>
+</head>
+<body>
+
+<header>
+🐦 Mini Twitter
+</header>
+
+<div class="container">
+
+<div class="post-box">
+    <textarea id="tweetText" placeholder="O que está acontecendo?"></textarea>
+    <br><br>
+    <button onclick="criarTweet()">Tweetar</button>
+</div>
+
+<div id="feed"></div>
+
+</div>
+
+<script>
+let posts = JSON.parse(localStorage.getItem("posts")) || [];
+
+function salvar(){
+    localStorage.setItem("posts", JSON.stringify(posts));
+}
+
+function criarTweet(){
+    const texto = document.getElementById("tweetText").value.trim();
+
+    if(!texto) return;
+
+    posts.unshift({
+        texto,
+        likes:0,
+        comentarios:[]
+    });
+
+    document.getElementById("tweetText").value="";
+    salvar();
+    renderizar();
+}
+
+function curtir(index){
+    posts[index].likes++;
+    salvar();
+    renderizar();
+}
+
+function comentar(index){
+    const comentario = prompt("Digite seu comentário:");
+
+    if(comentario){
+        posts[index].comentarios.push(comentario);
+        salvar();
+        renderizar();
+    }
+}
+
+function mensagem(){
+    const msg = prompt("Digite sua mensagem privada:");
+
+    if(msg){
+        alert("Mensagem enviada:\n\n" + msg);
+    }
+}
+
+function renderizar(){
+
+    const feed = document.getElementById("feed");
+
+    feed.innerHTML = "";
+
+    posts.forEach((post,index)=>{
+
+        let comentariosHTML = "";
+
+        post.comentarios.forEach(c=>{
+            comentariosHTML += `
+                <div class="comment">
+                    ${c}
+                </div>
+            `;
+        });
+
+        feed.innerHTML += `
+        <div class="post">
+
+            <strong>@usuario</strong>
+
+            <p>${post.texto}</p>
+
+            <div class="actions">
+                <button class="like-btn"
+                onclick="curtir(${index})">
+                ❤️ ${post.likes}
+                </button>
+
+                <button onclick="comentar(${index})">
+                💬 Comentar
+                </button>
+
+                <button class="msg-btn"
+                onclick="mensagem()">
+                ✉ Mensagem
+                </button>
+            </div>
+
+            ${comentariosHTML}
+
+        </div>
+        `;
+    });
+}
+
+renderizar();
+</script>
+
+</body>
+</html>
