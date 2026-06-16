@@ -1,199 +1,360 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mini Twitter</title>
+<title>T-Watter</title>
 
 <style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Segoe UI',sans-serif;
+}
+
 body{
-    font-family: Arial, sans-serif;
-    background:#f5f8fa;
-    margin:0;
+background:#0f172a;
+color:white;
+height:100vh;
+display:flex;
 }
 
-header{
-    background:#1DA1F2;
-    color:white;
-    padding:15px;
-    text-align:center;
-    font-size:24px;
-    font-weight:bold;
+.sidebar{
+width:260px;
+background:#111827;
+padding:20px;
+border-right:1px solid #1f2937;
 }
 
-.container{
-    max-width:700px;
-    margin:auto;
-    padding:20px;
+.logo{
+font-size:32px;
+font-weight:800;
+margin-bottom:40px;
+background:linear-gradient(90deg,#00d4ff,#7c3aed);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
 }
 
-.post-box{
-    background:white;
-    padding:15px;
-    border-radius:10px;
-    margin-bottom:20px;
+.menu button{
+width:100%;
+padding:14px;
+margin-bottom:10px;
+background:#1f2937;
+border:none;
+border-radius:12px;
+color:white;
+cursor:pointer;
+font-size:16px;
+transition:.3s;
+}
+
+.menu button:hover{
+background:#374151;
+}
+
+.main{
+flex:1;
+padding:25px;
+overflow:auto;
+}
+
+.card{
+background:#111827;
+padding:20px;
+border-radius:18px;
+margin-bottom:20px;
+box-shadow:0 0 20px rgba(0,0,0,.2);
 }
 
 textarea{
-    width:100%;
-    height:80px;
-    resize:none;
-    padding:10px;
+width:100%;
+height:100px;
+background:#1f2937;
+border:none;
+color:white;
+padding:15px;
+border-radius:12px;
+resize:none;
 }
 
-button{
-    background:#1DA1F2;
-    color:white;
-    border:none;
-    padding:10px 15px;
-    border-radius:20px;
-    cursor:pointer;
+input{
+width:100%;
+padding:12px;
+margin-bottom:10px;
+background:#1f2937;
+border:none;
+border-radius:10px;
+color:white;
+}
+
+.publish{
+margin-top:10px;
+padding:12px 20px;
+background:linear-gradient(90deg,#06b6d4,#7c3aed);
+border:none;
+color:white;
+border-radius:10px;
+cursor:pointer;
+font-weight:bold;
 }
 
 .post{
-    background:white;
-    padding:15px;
-    margin-bottom:15px;
-    border-radius:10px;
+background:#111827;
+padding:20px;
+border-radius:18px;
+margin-bottom:15px;
+}
+
+.post-header{
+font-weight:bold;
+margin-bottom:10px;
+color:#60a5fa;
 }
 
 .actions{
-    margin-top:10px;
-    display:flex;
-    gap:10px;
+margin-top:15px;
+display:flex;
+gap:10px;
 }
 
-.like-btn{
-    background:#e0245e;
+.actions button{
+border:none;
+padding:10px 15px;
+border-radius:10px;
+cursor:pointer;
+color:white;
 }
 
-.msg-btn{
-    background:#17bf63;
+.like{
+background:#e11d48;
 }
 
 .comment{
-    margin-top:10px;
-    padding:8px;
-    background:#f0f0f0;
-    border-radius:8px;
+background:#2563eb;
+}
+
+.message{
+background:#16a34a;
+}
+
+.hidden{
+display:none;
+}
+
+.msg{
+background:#1f2937;
+padding:12px;
+border-radius:12px;
+margin-top:10px;
 }
 </style>
 </head>
 <body>
 
-<header>
-🐦 Mini Twitter
-</header>
+<div class="sidebar">
+<div class="logo">T-Watter</div>
 
-<div class="container">
-
-<div class="post-box">
-    <textarea id="tweetText" placeholder="O que está acontecendo?"></textarea>
-    <br><br>
-    <button onclick="criarTweet()">Tweetar</button>
+<div class="menu">
+<button onclick="showTab('feed')">🏠 Feed</button>
+<button onclick="showTab('messages')">💬 Mensagens</button>
+</div>
 </div>
 
-<div id="feed"></div>
+<div class="main">
+
+<div id="feed">
+
+<div class="card">
+<textarea id="tweetText"
+placeholder="O que está acontecendo?"></textarea>
+
+<button class="publish"
+onclick="publishPost()">
+Publicar
+</button>
+</div>
+
+<div id="posts"></div>
+
+</div>
+
+<div id="messages" class="hidden">
+
+<div class="card">
+<h2 style="margin-bottom:15px;">Mensagens</h2>
+
+<input id="userName"
+placeholder="Nome da pessoa">
+
+<input id="msgText"
+placeholder="Digite sua mensagem">
+
+<button class="publish"
+onclick="sendMessage()">
+Enviar Mensagem
+</button>
+
+<div id="messageList"></div>
+
+</div>
+
+</div>
 
 </div>
 
 <script>
-let posts = JSON.parse(localStorage.getItem("posts")) || [];
+let posts =
+JSON.parse(localStorage.getItem("posts")) || [];
 
-function salvar(){
-    localStorage.setItem("posts", JSON.stringify(posts));
+let messages =
+JSON.parse(localStorage.getItem("messages")) || [];
+
+function save(){
+localStorage.setItem(
+"posts",
+JSON.stringify(posts)
+);
+
+localStorage.setItem(
+"messages",
+JSON.stringify(messages)
+);
 }
 
-function criarTweet(){
-    const texto = document.getElementById("tweetText").value.trim();
+function showTab(tab){
 
-    if(!texto) return;
+document
+.getElementById("feed")
+.classList.add("hidden");
 
-    posts.unshift({
-        texto,
-        likes:0,
-        comentarios:[]
-    });
+document
+.getElementById("messages")
+.classList.add("hidden");
 
-    document.getElementById("tweetText").value="";
-    salvar();
-    renderizar();
+document
+.getElementById(tab)
+.classList.remove("hidden");
 }
 
-function curtir(index){
-    posts[index].likes++;
-    salvar();
-    renderizar();
+function publishPost(){
+
+let text =
+document.getElementById("tweetText").value;
+
+if(text.trim()=="") return;
+
+posts.unshift({
+text:text,
+likes:0
+});
+
+document.getElementById(
+"tweetText"
+).value="";
+
+save();
+renderPosts();
 }
 
-function comentar(index){
-    const comentario = prompt("Digite seu comentário:");
+function likePost(index){
 
-    if(comentario){
-        posts[index].comentarios.push(comentario);
-        salvar();
-        renderizar();
-    }
+posts[index].likes++;
+
+save();
+renderPosts();
 }
 
-function mensagem(){
-    const msg = prompt("Digite sua mensagem privada:");
+function renderPosts(){
 
-    if(msg){
-        alert("Mensagem enviada:\n\n" + msg);
-    }
+let area =
+document.getElementById("posts");
+
+area.innerHTML="";
+
+posts.forEach((post,index)=>{
+
+area.innerHTML += `
+<div class="post">
+
+<div class="post-header">
+@usuario
+</div>
+
+<div>${post.text}</div>
+
+<div class="actions">
+
+<button
+class="like"
+onclick="likePost(${index})">
+❤️ ${post.likes}
+</button>
+
+</div>
+
+</div>
+`;
+});
 }
 
-function renderizar(){
+function sendMessage(){
 
-    const feed = document.getElementById("feed");
+let user =
+document.getElementById(
+"userName"
+).value;
 
-    feed.innerHTML = "";
+let text =
+document.getElementById(
+"msgText"
+).value;
 
-    posts.forEach((post,index)=>{
+if(user=="" || text=="") return;
 
-        let comentariosHTML = "";
+messages.unshift({
+user:user,
+text:text
+});
 
-        post.comentarios.forEach(c=>{
-            comentariosHTML += `
-                <div class="comment">
-                    ${c}
-                </div>
-            `;
-        });
+document.getElementById(
+"userName"
+).value="";
 
-        feed.innerHTML += `
-        <div class="post">
+document.getElementById(
+"msgText"
+).value="";
 
-            <strong>@usuario</strong>
-
-            <p>${post.texto}</p>
-
-            <div class="actions">
-                <button class="like-btn"
-                onclick="curtir(${index})">
-                ❤️ ${post.likes}
-                </button>
-
-                <button onclick="comentar(${index})">
-                💬 Comentar
-                </button>
-
-                <button class="msg-btn"
-                onclick="mensagem()">
-                ✉ Mensagem
-                </button>
-            </div>
-
-            ${comentariosHTML}
-
-        </div>
-        `;
-    });
+save();
+renderMessages();
 }
 
-renderizar();
+function renderMessages(){
+
+let area =
+document.getElementById(
+"messageList"
+);
+
+area.innerHTML="";
+
+messages.forEach(msg=>{
+
+area.innerHTML += `
+<div class="msg">
+<b>Para:</b> ${msg.user}
+<br>
+${msg.text}
+</div>
+`;
+});
+}
+
+renderPosts();
+renderMessages();
 </script>
 
 </body>
 </html>
+```
